@@ -6,7 +6,7 @@ Created on Wed Dec 19 10:59:23 2018
 @author: Zeeshan Ali Sayyed
 """
 
-from scripts.preprocessor import clean_arabic
+from .preprocessor import clean_arabic
 import csv
 import pandas as pd
 
@@ -122,12 +122,16 @@ def sent_to_features(sentence, feature_codes):
     return sent_features
 
 
-def file_to_features(filepath, feature_codes):
+def file_to_features(file_or_lines, feature_codes):
     """
     TODO: Line, word and character numbering starts from 1 in order to consistent with existing
     trained models. Change them to start from 0 in future models and remove this Warning!
     """
-    infile = open(filepath)
+    if isinstance(file_or_lines, str):
+        infile = open(file_or_lines)
+    else:
+        infile = file_or_lines
+    
     file_features = []
     for line_no, line in enumerate(infile):
         line_features = sent_to_features(line, feature_codes)
@@ -157,20 +161,23 @@ def sent_to_labels(sentence, scheme="default"):
     return labels
 
 
-def extract_features(filepath, feature_codes, write_style='csv', out_file_path=None, return_style=None):
+def extract_features(text_or_lines, feature_codes, write_style='csv', out_file_path=None, return_style=None):
     """
     Extracts features from the given file name. Currently supported file format is CSV.
     feature_codes is the list indicating the features which should be extracted.
     If out_file_name is present, the file will be written at that location, else it will be ignored.
     """
-    infile = open(filepath)
-    lines = infile.readlines()
-    infile.close()
+    if isinstance(text_or_lines, str):
+        infile = open(text_or_lines)
+        lines = infile.readlines()
+        infile.close()
+    else:
+        lines = text_or_lines
 
     line_features = []
     for line in lines:
         line_features.append(sent_to_features(line, feature_codes))
-    file_features = file_to_features(filepath, feature_codes)
+    file_features = file_to_features(text_or_lines, feature_codes)
 
     if out_file_path:
         if write_style == 'csv':
@@ -185,7 +192,6 @@ def extract_features(filepath, feature_codes, write_style='csv', out_file_path=N
         if return_style == 'raw':
             return file_features
         elif return_style == 'dataframe':
-            data = []
             columns = ['line_no', 'word_no', 'chr_position'] + feature_codes
             feature_frame = pd.DataFrame(file_features, columns=columns)
             return feature_frame

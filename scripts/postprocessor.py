@@ -6,7 +6,7 @@ Created on Sun Dec 20 13:53:52 2018
 @author: shahensha
 """
 
-from scripts.preprocessor import clean_arabic
+from .preprocessor import clean_arabic
 
 
 def _humanify_word(word, markings):
